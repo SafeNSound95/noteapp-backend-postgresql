@@ -5,17 +5,30 @@ const { SECRET } = require("../util/config");
 
 const { Note } = require("../models");
 const { User } = require("../models");
+const { Op } = require("sequelize");
 
 router.get("/", async (req, res) => {
+  const where = {};
+
+  if (req.query.important) {
+    where.important = req.query.important === "true";
+  }
+
+  if (req.query.search) {
+    where.content = {
+      [Op.substring]: req.query.search,
+    };
+  }
+
   const notes = await Note.findAll({
-    attributes: {
-      exclude: ["userId"],
-    },
+    attributes: { exclude: ["userId"] },
     include: {
       model: User,
       attributes: ["name"],
     },
+    where,
   });
+
   res.json(notes);
 });
 
